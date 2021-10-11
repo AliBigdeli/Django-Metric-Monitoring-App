@@ -30,8 +30,9 @@
 
 ### demo
 <p align="center">
-<img src="" width="300"/>
+<img src="https://user-images.githubusercontent.com/29748439/136792176-136c79aa-b5b9-4b70-a340-8e718a2173f7.gif" width="300"/>
 </p>
+
 
 ### Features
 - Django LTS
@@ -152,8 +153,9 @@ Note: you can use the one click deploy on the top of the readme too
 ### Database schema
 A simple view of the project model schema.
 <p align="center">
-<img src="" alt="database schema" width="600"/>
+<img src="https://user-images.githubusercontent.com/29748439/136792256-8d5f0fa1-29a1-456b-a60b-7ec00413f462.png" alt="database schema" width="600"/>
 </p>
+
 
 ### Todo
 - [x] add heroku config files
