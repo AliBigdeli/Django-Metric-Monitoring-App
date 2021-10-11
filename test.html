@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <title>Temperature and Humidity</title>
+</head>
+
+<body>
+    <div style="width: 100%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+        var data = [], temperature = [], humidity = [];
+        let dataGet = { "temperature": ["12", "35", "27"], "humidity": ["56", "70", "87"]}
+        data = JSON.parse(JSON.stringify(dataGet));
+        data['temperature'].forEach(function (singleResult) {
+            temperature.push(singleResult);
+        });
+        data['humidity'].forEach(function (singleResult) {
+            humidity.push(singleResult);
+        });
+        var ctx = document.getElementById("canvas").getContext("2d");
+        window.myLine = new Chart(ctx, config);
+
+        var randomScalingFactor = function () {
+            return Math.round(Math.random() * 100);
+        };
+        var randomColorFactor = function () {
+            return Math.round(Math.random() * 255);
+        };
+        var randomColor = function (opacity) {
+            return 'rgba(' + randomColorFactor() + ',' + randomColorFactor() + ',' + randomColorFactor() + ',' + (opacity || '.9') + ')';
+        };
+
+        var config = {
+            type: 'line',
+            data: {
+                
+                datasets: [{
+                    label: "Temperatur",
+                    data: temperature,
+                    fill: false
+                },
+                {
+                    label: "Feuchtigkeit",
+                    data: humidity,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Temperature und Humidity'
+                },
+                tooltips: {
+                    mode: 'label'
+                },
+                hover: {
+                    mode: 'dataset'
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Datum'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Wert'
+                        },
+                        ticks: {
+                            suggestedMin: -20,
+                            suggestedMax: 250,
+                        }
+                    }],
+                }
+            }
+        };
+
+        $.each(config.data.datasets, function (i, dataset) {
+            dataset.borderColor = randomColor(1.0);
+            dataset.backgroundColor = randomColor(1.0);
+            dataset.pointBorderColor = randomColor(1.0);
+            dataset.pointBackgroundColor = randomColor(1.0);
+            dataset.pointBorderWidth = 1;
+        });
+
+        window.onload = function () {
+            var ctx = document.getElementById("canvas").getContext("2d");
+            window.myLine = new Chart(ctx, config);
+        };
+    </script>
+</body>
+
+</html>

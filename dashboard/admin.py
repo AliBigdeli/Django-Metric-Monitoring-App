@@ -8,7 +8,7 @@ class DeviceAdmin(admin.ModelAdmin):
     list_filter = ("user",)
 
 class MetricAdmin(admin.ModelAdmin):
-    list_display = ["temperature", "humidity","device", "created_date"]
+    list_display = ["device","temperature", "humidity", "created_date"]
     search_fields = ["device"]
     list_filter = ("device",)
 

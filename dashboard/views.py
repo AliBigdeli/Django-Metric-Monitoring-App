@@ -8,15 +8,15 @@ from rest_framework.authtoken.models import Token
 
 @login_required
 def indexView(request):
-    return render(request, "tracker/index.html")
+    return render(request, "dashboard/index.html")
 
 @login_required
 def deviceListView(request):
-    return render(request, "tracker/device_list.html")
+    return render(request, "dashboard/device_list.html")
 
 @login_required
 def deviceDetailView(request,token):
     auth_token = Token.objects.get(user=request.user)
     device = Device.objects.get(token=token)
     context = {"device":device,"api_key":auth_token}
-    return render(request, "tracker/device_detail.html",context)
+    return render(request, "dashboard/device_detail.html",context)

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Metric Dashboard | Devices {% endblock %}
+
+
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+	<div>
+		<h1 class="mt-4">Devices</h1>
+	</div>
+	<div class="ms-auto mt-4">
+		<button type="button " class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#FormModal"
+			id="CreateDevice">
+			Add Device
+		</button>
+	</div>
+</div>
+<hr>
+<div class="row row-cols-1 row-cols-md-3 g-4" id="list-wrapper">
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="FormModal" tabindex="-1" aria-labelledby="FormModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="FormModalLabel">Create Form</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="createForm">
+					<div class="mb-3">
+						<label for="recipient-name" class="col-form-label">Name:</label>
+						<input type="text" class="form-control" id="FormModalName">
+					</div>
+					<div class="mb-3">
+						<label for="message-text" class="col-form-label">Descriptions:</label>
+						<textarea class="form-control" id="FormModalDescriptions"></textarea>
+					</div>
+			</div>
+			<div class="modal-footer" id="ModalFooter">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-warning" onclick="createDevice()" id="SubmitButton"
+					data-bs-dismiss="modal">Create</button>
+			</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+	function getCookie(name) {
+		var cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+			var cookies = document.cookie.split(';');
+			for (var i = 0; i < cookies.length; i++) {
+				var cookie = cookies[i].trim();
+				// Does this cookie string begin with the name we want?
+				if (cookie.substring(0, name.length + 1) === (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
+
+	let csrftoken = getCookie('csrftoken');
+
+	var list_snapshot = new Array;
+
+	buildList()
+
+	function buildList() {
+		var wrapper = document.getElementById('list-wrapper')
+		var url = `/dashboard/api/device/list`
+		var list
+		fetch(url)
+			.then((resp) => resp.json())
+			.then(function (data) {
+				// console.log('Data:', data)        
+
+				list = data
+				for (var i in list) {
+					try {
+						document.getElementById(`data-row-${i}`).remove()
+					} catch (err) {
+
+					}
+					var name = list[i].name
+					var token = list[i].token
+					var descriptions = list[i].descriptions
+					var item = `
+					<div class="col" id="data-row-${i}">
+						<div class="card shadow rounded">
+							<div class="d-flex justify-content-evenly align-items-center" style="width:100%; height:170px;">
+								
+								<div class= "  px-2 py-4 rounded text-danger" >
+                                    <h3 class=" m-0 font-weight-bold" style="font-size:60px !important;font-weight:700 !important; "> 13°C </h3>
+                                    
+								</div>
+								<div class="  rounded px-2 py-4 text-primary">
+									<h3 class=" m-0  font-weight-bold" style="font-size:60px !important;font-weight:700 !important;"> 13 % </h3>
+									
+								</div>
+								
+												
+							
+						</div>	
+						<hr>
+							<div class="card-body">
+								<h5 class="card-title">${name}</h5>
+								<p class="card-text">${descriptions}</p>
+								<a href="/dashboard/device/${token}" class="btn btn-warning">Show Details</a>
+							</div>
+						</div>
+					</div>`
+					wrapper.innerHTML += item
+				}
+				list_snapshot = [...list];
+
+			});
+	}
+
+	function createDevice() {
+		let url = `/dashboard/api/device/list`
+		let code = 201
+		let obj_name = document.getElementById('FormModalName').value
+		let obj_descriptions = document.getElementById('FormModalDescriptions').value
+		var Http = new XMLHttpRequest();
+		Http.open("POST", url);
+		Http.setRequestHeader("Accept", "application/json");
+		Http.setRequestHeader("Content-Type", "application/json");
+		Http.setRequestHeader("X-CSRFToken", csrftoken);
+
+		Http.onreadystatechange = function () {
+
+			if (Http.readyState === 4) {
+				// // console.log(Http.status);
+				response = JSON.parse(Http.responseText);
+				// // console.log(response);
+				if (Http.status !== code) {
+					alert(`Error: ${Http.status} \nMsg: ${Http.responseText}`)
+				}
+			}
+			buildList()
+			document.getElementById('createForm').reset()
+
+		}
+
+		data = JSON.stringify({ "name": obj_name, "descriptions": obj_descriptions })
+		Http.send(data);
+	}
+
+</script>
+
+
+
+{% endblock %}

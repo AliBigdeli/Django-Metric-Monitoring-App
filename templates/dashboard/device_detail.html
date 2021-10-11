@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}Metric dashboard | Device Detail{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    <div>
+        <h1 class="mt-4"><span class="text-warning">{{device.name}}</span> detail <a type="button"
+                class="text-secondary" data-bs-toggle="modal" data-bs-target="#FormModal" id="formbutton"><i
+                    class="fas fa-cogs" onclick="detailModal()"></i></a></h1>
+    </div>
+    <div class="ms-auto mt-4">
+        <a type="button" class="btn btn-warning" href="{% url 'dashboard:index' %}">
+            Back
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#logs" id="logbutton">
+            Logs
+        </button>
+
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col-sm-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <p class="card-text">{{device.descriptions}}</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Token: </strong>{{device.token}}</li>
+                <li class="list-group-item"><strong>Created: </strong> {{device.created_date|date:"Y/m/d - H:i"}}</li>
+                <li class="list-group-item"><strong>API key: </strong> {{api_key}}</li>
+            </ul>
+
+        </div>
+    </div>
+    <div class="col-sm-9">
+        <div class="card shadow">
+            <div class="card-body">
+                <canvas style="width:100%; height:500px;" id="myChart">
+
+                </canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="logs" aria-hidden="true" aria-labelledby="logsModalToggleLabel" tabindex="-1">
+    <div class="modal-dialog modal-lg ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logsModalToggleLabel">Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Temperature</th>
+                                <th scope="col">Humidity</th>
+                                <th scope="col">Created_time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list-wrapper">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="FormModal" tabindex="-1" aria-labelledby="FormModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="FormModalLabel">Create Form</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <div class="mb-3">
+                        <label for="recipient-name" class="col-form-label">Name:</label>
+                        <input type="text" class="form-control" id="FormModalName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="message-text" class="col-form-label">Descriptions:</label>
+                        <textarea class="form-control" id="FormModalDescriptions"></textarea>
+                    </div>
+            </div>
+            <div class="px-3 pb-3" id="ModalFooter">
+                <div class="d-flex">
+                    <div class="float-left">
+                        <button type="button" class="btn btn-danger" onclick="deleteDevice()" id="SubmitButton"
+                            data-bs-dismiss="modal">Delete</button>
+                    </div>
+                    <div class="ms-auto">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-warning" onclick="updateDevice()" id="SubmitButton"
+                            data-bs-dismiss="modal">Update</button>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    let csrftoken = getCookie('csrftoken');
+
+
+    var list_snapshot
+
+
+    async function buildList() {
+        //console.log("buildlist")
+        var wrapper = document.getElementById('list-wrapper')
+        $(wrapper).empty();
+        token = "{{device.token}}"
+        var url = `/dashboard/api/device/${token}/data`
+        const response = await fetch(url);
+        const data = await response.json();
+        //console.log(data)
+        var list = data
+
+        for (var i in list) {
+            try {
+                document.getElementById(`data-row-${i}`).remove()
+            } catch (err) {
+
+            }
+            var temperature = list[i].temperature
+            var humidity = list[i].humidity
+            var created_date = list[i].created_date
+            const event = new Date(created_date);
+            created_date = `${event.toISOString().slice(0, 10)} - ${event.toISOString().slice(11, 16)}`
+
+            var item = `<tr">
+						<th scope="row" >${i}</th>
+						<td>${temperature}</td>
+						<td>${humidity}</td>						
+						<td>${created_date}</td>						
+						</tr>`
+            wrapper.innerHTML += item
+        }
+        return list;
+
+
+    }
+
+    buildList()
+
+    setInterval(function () {
+        buildList()
+    }, 60000);
+
+    function deleteDevice(token) {
+        token = "{{device.token}}"
+        fetch(`/dashboard/api/device/${token}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            }
+        }).then((response) => {
+            window.location.href = "/";
+        })
+    }
+
+    function detailModal() {
+        token = "{{device.token}}"
+        let data = fetch(`/dashboard/api/device/${token}`, {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            }
+        })
+            .then((resp) => resp.json())
+            .then(function (data) {
+                // console.log(data)                
+                let obj_name = document.getElementById('FormModalName')
+                let obj_descriptions = document.getElementById('FormModalDescriptions')
+                obj_name.value = data.name
+                if (data.descriptions != null)
+                    obj_descriptions.value = data.descriptions
+                else
+                    obj_descriptions.value = "no descriptions"
+
+            })
+    }
+
+    function updateDevice() {
+        let token = "{{device.token}}"
+        let url = `/dashboard/api/device/${token}`
+        let code = 200
+
+
+        let obj_name = document.getElementById('FormModalName').value
+        let obj_descriptions = document.getElementById('FormModalDescriptions').value
+        var Http = new XMLHttpRequest();
+        Http.open("POST", url);
+        Http.setRequestHeader("Accept", "application/json");
+        Http.setRequestHeader("Content-Type", "application/json");
+        Http.setRequestHeader("X-CSRFToken", csrftoken);
+        Http.onreadystatechange = function () {
+            if (Http.readyState === 4) {
+                response = JSON.parse(Http.responseText);
+
+                if (Http.status !== code) {
+                    alert(`Error: ${Http.status} \nMsg: ${Http.responseText}`)
+                }
+            }
+
+
+        }
+
+        data = JSON.stringify({ "name": obj_name, "descriptions": obj_descriptions })
+        Http.send(data);
+        location.reload();
+    }
+
+
+
+
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
+    var myData, tempArray, humidArray, timeArray;
+    // for (let item in list_snapshot.length()) {
+    //         console.log(1)
+    //         // tempArray.push(item["temperature"]);         
+    //         // humidArray.push(item["humidity"]); 
+    //         // timeArray.push(item["created_date"]); 
+
+    // }
+    let myList = Object.keys(list_snapshot).map(function (key) {
+        return { label: key, value: list_snapshot[key] }
+    });
+    console.log(myList)
+    for (let index = 0; index < myList.length; index++) {
+        //const element = array[index];
+        console.log(index)
+
+    }
+    console.log(list_snapshot[0])
+    //console.log(tempArray);
+
+    const labels = timeArray;
+    const data = {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Temperature',
+                data: tempArray,
+                borderColor: 'rgba(255, 0, 0, 1)'
+
+            },
+            {
+                label: 'Humidity',
+                data: humidArray,
+                borderColor: 'rgba(0, 0, 255, 1)'
+
+
+            }
+        ]
+    };
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            stacked: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Chart.js Line Chart - Multi Axis'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                }
+            }
+        },
+    };
+
+    var myChart = new Chart(
+        document.getElementById('myChart'),
+        config
+    );
+</script>
+
+{% endblock %}

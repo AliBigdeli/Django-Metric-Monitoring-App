@@ -112,8 +112,8 @@ class MetricListView(APIView):
         List all the coordinate items for given requested user
         """
         device = self.get_device_obj(token, request.user.id)
-        coordinates = Metric.objects.filter(device=device.id)[:20]
-        serializer = MetricSerializer(coordinates, many=True)
+        metrics = Metric.objects.filter(device=device.id)[:20]
+        serializer = MetricSerializer(metrics, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, token, *args, **kwargs):
