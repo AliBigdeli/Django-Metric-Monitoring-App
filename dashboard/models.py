@@ -38,4 +38,15 @@ class Metric(models.Model):
     class Meta:
         ordering = ["-created_date"]
 
+    @property
+    def latest_humidity(self,id):
+        obj = self.objects.filter(device=id).latest('created_date')
+        return obj.humidity 
+        
+
+    @property
+    def latest_temperature(self,id):
+        obj = self.objects.filter(device=id).latest('created_date')
+        return obj.temperature 
+        
     

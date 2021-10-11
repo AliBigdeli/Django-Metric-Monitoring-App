@@ -38,7 +38,7 @@
     </div>
     <div class="col-sm-9">
         <div class="card shadow">
-            <div class="card-body">
+            <div class="card-body" id="cartparent">
                 <canvas style="width:100%; height:500px;" id="myChart">
 
                 </canvas>
@@ -135,10 +135,7 @@
 
     let csrftoken = getCookie('csrftoken');
 
-
-    var list_snapshot
-
-
+    var myChart;
     async function buildList() {
         //console.log("buildlist")
         var wrapper = document.getElementById('list-wrapper')
@@ -170,16 +167,10 @@
 						</tr>`
             wrapper.innerHTML += item
         }
-        return list;
 
-
+        drawChart(list);
     }
 
-    buildList()
-
-    setInterval(function () {
-        buildList()
-    }, 60000);
 
     function deleteDevice(token) {
         token = "{{device.token}}"
@@ -249,78 +240,80 @@
 
 
 
+    function drawChart(list) {
+        console.log(list)
 
-    const DATA_COUNT = 7;
-    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
-    var myData, tempArray, humidArray, timeArray;
-    // for (let item in list_snapshot.length()) {
-    //         console.log(1)
-    //         // tempArray.push(item["temperature"]);         
-    //         // humidArray.push(item["humidity"]); 
-    //         // timeArray.push(item["created_date"]); 
 
-    // }
-    let myList = Object.keys(list_snapshot).map(function (key) {
-        return { label: key, value: list_snapshot[key] }
-    });
-    console.log(myList)
-    for (let index = 0; index < myList.length; index++) {
-        //const element = array[index];
-        console.log(index)
+        var myData, tempArray, humidArray, timeArray;
+        var tempArray = [];
+        var humidArray = [];
+        var timeArray = [];
+        list = list.reverse()
+        for (let item of list) {
+            tempArray.push(item.temperature);
+            humidArray.push(item.humidity);
+            const event = new Date(item.created_date);
+            created_date = `${event.toISOString().slice(0, 10)} - ${event.toISOString().slice(11, 16)}`
+            timeArray.push(created_date);
+        }
 
+        const labels = timeArray;
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Temperature',
+                    data: tempArray,
+                    borderColor: 'rgba(255, 0, 0, 1)'
+
+                },
+                {
+                    label: 'Humidity',
+                    data: humidArray,
+                    borderColor: 'rgba(0, 0, 255, 1)'
+
+
+                }
+            ]
+        };
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Chart.js Line Chart - Multi Axis'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                    }
+                }
+            },
+        };
+
+
+        myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
     }
-    console.log(list_snapshot[0])
-    //console.log(tempArray);
-
-    const labels = timeArray;
-    const data = {
-        labels: labels,
-        datasets: [
-            {
-                label: 'Temperature',
-                data: tempArray,
-                borderColor: 'rgba(255, 0, 0, 1)'
-
-            },
-            {
-                label: 'Humidity',
-                data: humidArray,
-                borderColor: 'rgba(0, 0, 255, 1)'
-
-
-            }
-        ]
-    };
-    const config = {
-        type: 'line',
-        data: data,
-        options: {
-            responsive: true,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            stacked: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Chart.js Line Chart - Multi Axis'
-                }
-            },
-            scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                }
-            }
-        },
-    };
-
-    var myChart = new Chart(
-        document.getElementById('myChart'),
-        config
-    );
+    setInterval(function () {
+        console.log(myChart)
+        $("#myChart").remove(); // this is my <canvas> element
+        $('#cartparent').append('<canvas style="width:100%; height:500px;" id="myChart">');
+        buildList()
+    }, 10000);
 </script>
 
 {% endblock %}
