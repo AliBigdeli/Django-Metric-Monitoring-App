@@ -30,7 +30,7 @@
 
 ### demo
 <p align="center">
-<img src="https://user-images.githubusercontent.com/29748439/136792176-136c79aa-b5b9-4b70-a340-8e718a2173f7.gif" width="300"/>
+<img src="https://user-images.githubusercontent.com/29748439/136792176-136c79aa-b5b9-4b70-a340-8e718a2173f7.gif" width="900"/>
 </p>
 
 
